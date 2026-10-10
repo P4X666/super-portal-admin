@@ -1,0 +1,10 @@
+node_modules
+dist
+
+.env.dev
+.env.prd
+.env.uat
+
+docs
+
+vite.config.ts

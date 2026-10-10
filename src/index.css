@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* shadcn 组件层 dark: variant 锁定为类策略（项目纯暗色无 .dark 类 → dark: 前缀类恒不生效），
+   避免 Tailwind 默认 prefers-color-scheme 策略下用户系统暗色时触发不可控覆盖 */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* ========== 品牌色（与 super-portal 同源） ========== */
+  --color-primary: #12C2E9;
+  --color-secondary: #7B61FF;
+
+  /* ========== 文字色 ========== */
+  --color-text-primary: rgba(255, 255, 255, 0.95);
+  --color-text-secondary: rgba(255, 255, 255, 0.9);
+  --color-text-tertiary: rgba(255, 255, 255, 0.5);
+  --color-text-placeholder: rgba(255, 255, 255, 0.3);
+
+  /* ========== 字号 ========== */
+  --font-sans: "Noto Sans SC", sans-serif;
+  --text-body: 14px;
+  --text-caption: 12px;
+
+  /* ========== shadcn/ui 语义 token（src/components/ui/ 标准件消费，
+     值全部映射 super-portal 既有色板，不引入 shadcn 默认灰蓝色系；
+     项目纯暗色，无 .dark 类 → 组件内 dark: 前缀类恒不生效，无需 .dark 覆盖块 ========== */
+  --color-background: #18181F;
+  --color-foreground: rgba(255, 255, 255, 0.95);
+  --color-primary-foreground: #0b0c0f;                   /* 青底配深字 */
+  --color-secondary-foreground: #ffffff;
+  --color-card: #1e1e2a;
+  --color-card-foreground: rgba(255, 255, 255, 0.95);
+  --color-muted: rgba(18, 194, 233, 0.12);
+  --color-muted-foreground: rgba(255, 255, 255, 0.45);
+  --color-popover: rgba(31, 30, 41, 0.85);
+  --color-popover-foreground: rgba(255, 255, 255, 0.95);
+  --color-accent: rgba(18, 194, 233, 0.08);
+  --color-accent-foreground: rgba(255, 255, 255, 0.95);
+  --color-destructive: #ef4444;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-weak: rgba(255, 255, 255, 0.1);
+  --color-input: rgba(255, 255, 255, 0.12);
+  --color-ring: rgba(18, 194, 233, 0.35);
+
+  /* ========== 徽标语义色（白名单 feature Badge 三色） ========== */
+  --color-badge-blue: #12C2E9;
+  --color-badge-blue-bg: rgba(18, 194, 233, 0.12);
+  --color-badge-green: #00c617;
+  --color-badge-green-bg: rgba(0, 198, 23, 0.13);
+  --color-badge-purple: #b584ff;
+  --color-badge-purple-bg: rgba(181, 132, 255, 0.12);
+  /* 迁移结果警示色（parseFailed > 0） */
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+}
+
+/* 细滚动条 */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+.thin-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 页面基准：画板底色 #18181F，全屏铺满 */
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+}
+
+button {
+  cursor: pointer;
+}
