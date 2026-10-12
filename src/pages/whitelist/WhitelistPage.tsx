@@ -177,7 +177,7 @@ export function WhitelistPage() {
       <CreateWhitelistDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreate={mutations.create}
+        onCreateMany={mutations.createMany}
         creating={mutations.creating}
       />
 

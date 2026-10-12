@@ -30,6 +30,16 @@ export interface CreateWhitelistPayload {
   remark?: string
 }
 
+/** 批量新增的逐项结果分类（后端无批量接口，前端循环调用单条 POST 归集） */
+export interface CreateWhitelistBatchResult {
+  /** 创建成功 */
+  succeeded: WhitelistFeature[]
+  /** 已存在（409 WHITELIST_DUPLICATE），未重复创建 */
+  duplicates: WhitelistFeature[]
+  /** 其他失败及原因 */
+  failed: Array<{ feature: WhitelistFeature; message: string }>
+}
+
 /** PATCH /whitelist 入参（仅 remark 可改；openId/feature 为定位键；空串=清空备注） */
 export interface UpdateWhitelistPayload {
   openId: string
