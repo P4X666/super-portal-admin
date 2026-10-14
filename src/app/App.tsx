@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/login/LoginPage'
 import { MigrationPage } from '@/pages/migration/MigrationPage'
 import { UserQueryPage } from '@/pages/user/UserQueryPage'
 import { WhitelistPage } from '@/pages/whitelist/WhitelistPage'
+import { SkillMappingPage } from '@/pages/skill/SkillMappingPage'
 
 /** 路由守卫：未登录访问业务页 → 重定向登录页（携带来源，登录后回跳） */
 function AuthGate() {
@@ -28,6 +29,7 @@ export default function App() {
               <Route index element={<Navigate to="/migration" replace />} />
               <Route path="/migration" element={<MigrationPage />} />
               <Route path="/whitelist" element={<WhitelistPage />} />
+              <Route path="/skill-mapping" element={<SkillMappingPage />} />
               <Route path="/user-query" element={<UserQueryPage />} />
             </Route>
           </Route>

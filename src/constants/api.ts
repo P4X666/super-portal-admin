@@ -33,6 +33,8 @@ export const API_PATH_ASSETS_IMPORT_KNOWLEDGE = '/assets/import-knowledge'
 export const API_PATH_ASSETS_IMPORT_TABLE = '/assets/import-table'
 /** Node：资产列表（V1 仅取 total 展示「当前可见资产数」） */
 export const API_PATH_ASSETS = '/assets'
+/** Node：skill 映射 CRUD（GET/POST 同路径，PATCH/DELETE 为路径参数） */
+export const API_PATH_SKILL_MAPPING = '/skill-mapping'
 
 /** 迁移接口专用超时：同步接口逐数据集拉全量文档后 upsert，默认 15s 必超时（技术方案 §5.3） */
 export const ASSETS_IMPORT_TIMEOUT_MS = 300_000

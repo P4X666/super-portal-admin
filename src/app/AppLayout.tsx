@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth'
 const NAV_ITEMS = [
   { to: '/migration', label: '资产同步' },
   { to: '/whitelist', label: '白名单管理' },
+  { to: '/skill-mapping', label: 'Skill 管理' },
   { to: '/user-query', label: '用户查询' },
 ] as const
 
