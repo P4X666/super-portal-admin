@@ -6,6 +6,16 @@ export interface ImportKnowledgeResult {
   imported: number
   /** 解析失败（sku/view 为空）但仍已写入的文档数 */
   parseFailed: number
+  /** 知识库中不存在（上游 404）而跳过的数据集别名，出现即提示排查服务端 HIAGENT_DATASETS 配置 */
+  skippedDatasets: string[]
+}
+
+/** POST /assets/clear-knowledge 的 data 载荷（Node ClearAssetsResultVo） */
+export interface ClearKnowledgeResult {
+  /** 清空涉及的数据集别名列表（product-* 前缀） */
+  datasets: string[]
+  /** 实际物理删除的资产条数 */
+  deleted: number
 }
 
 /** POST /assets/import-table 的 data 载荷（Node ImportTableResultVo） */

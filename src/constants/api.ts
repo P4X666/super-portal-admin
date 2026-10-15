@@ -29,6 +29,8 @@ export const API_PATH_LARK_ME = '/api/auth/lark/me'
 export const API_PATH_WHITELIST = '/whitelist'
 /** Node：知识库资产同步（product-* 数据集 → assets upsert，同步长耗时，前端单独放宽超时） */
 export const API_PATH_ASSETS_IMPORT_KNOWLEDGE = '/assets/import-knowledge'
+/** Node：清空知识库导入资产（物理删除 product-* 数据集对应行，配合同步全量重建，同放宽超时） */
+export const API_PATH_ASSETS_CLEAR_KNOWLEDGE = '/assets/clear-knowledge'
 /** Node：商品属性同步（HiAgent 数据库表 → assets 按 sku 回填 gender/des，同放宽超时） */
 export const API_PATH_ASSETS_IMPORT_TABLE = '/assets/import-table'
 /** Node：资产列表（V1 仅取 total 展示「当前可见资产数」） */

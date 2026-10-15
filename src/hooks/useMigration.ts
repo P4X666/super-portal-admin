@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchAssetsTotal, importKnowledge, importTable } from '@/services/assets'
-import type { ImportKnowledgeResult, ImportTableResult } from '@/types/assets'
+import { clearKnowledge, fetchAssetsTotal, importKnowledge, importTable } from '@/services/assets'
+import type {
+  ClearKnowledgeResult,
+  ImportKnowledgeResult,
+  ImportTableResult,
+} from '@/types/assets'
 
 /**
- * 迁移模块 hooks（PRD 模块一，后端两个同步接口各自独立）
+ * 迁移模块 hooks（PRD 模块一，后端同步/清空接口各自独立）
  * - useKnowledgeImport：知识库资产同步（import-knowledge）状态机
+ * - useKnowledgeClear：清空知识库导入资产（clear-knowledge），复用同步状态机（importing 语义为清空进行中）
  * - useTableImport：商品属性同步（import-table）状态机
- * - useAssetsTotal：资产总数（初始加载 + 任一同步成功后刷新；失败静默为 null）
- * 两个同步均为幂等接口，failed 可直接重试；同一时刻只允许各自一个请求在途
+ * - useAssetsTotal：资产总数（初始加载 + 任一同步/清空成功后刷新；失败静默为 null）
+ * 各操作均为幂等接口，failed 可直接重试；同一时刻只允许各自一个请求在途
  */
 
 export type MigrationPhase = 'idle' | 'importing' | 'success' | 'failed'
@@ -58,6 +63,21 @@ export function useKnowledgeImport(onSuccess?: () => void): {
     return result
   }, [onSuccess])
   return useMigrationPhase<ImportKnowledgeResult>(run)
+}
+
+export function useKnowledgeClear(onSuccess?: () => void): {
+  phase: MigrationPhase
+  result: ClearKnowledgeResult | null
+  error: string | null
+  start: () => Promise<void>
+  reset: () => void
+} {
+  const run = useCallback(async () => {
+    const result = await clearKnowledge()
+    onSuccess?.()
+    return result
+  }, [onSuccess])
+  return useMigrationPhase<ClearKnowledgeResult>(run)
 }
 
 export function useTableImport(onSuccess?: () => void): {
