@@ -238,9 +238,18 @@ function KnowledgeSyncCard({ onSynced }: { onSynced: () => void }) {
                 />
               </div>
               {result.parseFailed > 0 && (
-                <p className="text-caption text-warning" role="alert">
-                  {result.parseFailed} 条记录文件名解析失败，已以空 SKU/视角写入，可前往资产管理页人工修正。
-                </p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-caption text-warning" role="alert">
+                    {result.parseFailed} 条记录文件名解析失败，已以空 SKU/视角写入，可前往主站资产管理页按文件名搜索人工修正：
+                  </p>
+                  <ul className="flex list-disc flex-col gap-0.5 pl-5 text-caption text-text-tertiary">
+                    {result.parseFailedFiles.map((name) => (
+                      <li key={name} className="break-all">
+                        {name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
               {result.skippedDatasets.length > 0 && (
                 <p className="text-caption text-warning" role="alert">

@@ -6,6 +6,8 @@ export interface ImportKnowledgeResult {
   imported: number
   /** 解析失败（sku/view 为空）但仍已写入的文档数 */
   parseFailed: number
+  /** 解析失败的文件名全量列表（与 parseFailed 一一对应，供人工定位修正；通常不超过 10 个） */
+  parseFailedFiles: string[]
   /** 知识库中不存在（上游 404）而跳过的数据集别名，出现即提示排查服务端 HIAGENT_DATASETS 配置 */
   skippedDatasets: string[]
 }
