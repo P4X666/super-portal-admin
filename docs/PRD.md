@@ -2,13 +2,13 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 文档版本 | v1.4 |
-| 发布日期 | 2026-10-15 |
+| 文档版本 | v1.5 |
+| 发布日期 | 2026-10-16 |
 | 文档状态 | 待评审 |
 | 需求方 | 超级入口项目组 |
 | 关联项目 | super-portal（用户端前端）、UA-HiAgent-Plugin（Node API 服务）、UA-HiAgent-Plugin（Java API 服务，登录验证） |
 
-> 变更记录：v1.4 **补录模块四 用户查询**（`/user-query`，功能已上线、规格后补；依赖 Java 新增的 `GET /api/auth/lark/user` 用户档案查询；原 §9～§12 顺延为 §10～§13）。v1.3 新增**模块三 Skill 管理**（`/skill-mapping`，HiAgent skill 中文名映射表的查询/批量新增/编辑/删除；后端 `GET/POST/PATCH/DELETE /skill-mapping` 均已存在，零改动；原 §8～§11 顺延为 §9～§12）。v1.2 模块一拆分为两个同步操作——后端 import 接口更新为 `POST /assets/import-knowledge`（知识库资产同步，原 `/assets/import`）与新增 `POST /assets/import-table`（商品属性同步，HiAgent 数据库表按 SKU 回填 gender/des）。v1.1 确定登录方案（sessionId + `/me` 验证 unionId+name）。
+> 变更记录：v1.5 **模块一扩展「资产查询与删除」**（/migration 页新增第三张卡片：`GET /assets` 按 DatasetId（别名/UUID）+ Keywords 分页查询、`DELETE /assets/:id` 单条物理删除，用于下架不合规商品并在删除后复查；同时补录已实现未归档的「清空现有数据」`POST /assets/clear-knowledge`；无新增路由，无章节顺延）。v1.4 **补录模块四 用户查询**（`/user-query`，功能已上线、规格后补；依赖 Java 新增的 `GET /api/auth/lark/user` 用户档案查询；原 §9～§12 顺延为 §10～§13）。v1.3 新增**模块三 Skill 管理**（`/skill-mapping`，HiAgent skill 中文名映射表的查询/批量新增/编辑/删除；后端 `GET/POST/PATCH/DELETE /skill-mapping` 均已存在，零改动；原 §8～§11 顺延为 §9～§12）。v1.2 模块一拆分为两个同步操作——后端 import 接口更新为 `POST /assets/import-knowledge`（知识库资产同步，原 `/assets/import`）与新增 `POST /assets/import-table`（商品属性同步，HiAgent 数据库表按 SKU 回填 gender/des）。v1.1 确定登录方案（sessionId + `/me` 验证 unionId+name）。
 
 ---
 
@@ -34,7 +34,7 @@
 ### 2.2 非目标（本期不做）
 
 - 不改变用户端（super-portal）的权限判断逻辑与 `GET /whitelist/check` 接口
-- 不做资产本身的编辑/隐藏管理（该能力已在 super-portal `/config?tab=asset` 提供）
+- 不做资产本身的编辑/隐藏管理（该能力已在 super-portal `/config?tab=asset` 提供；不合规商品的**删除**已由 v1.5 在资产同步页补录，见 6.7）
 - 不做数据看板（data_dashboard）业务功能，仅维护其权限点
 - 不做操作审计日志落库（后端无此接口，列入开放问题）
 
@@ -55,7 +55,7 @@
 
 | 角色 | 说明 | 使用模块 |
 | --- | --- | --- |
-| 管理员（PM / 运营 / 开发） | 超级入口项目的内部人员，拥有 admin 后台访问权 | 模块一 + 模块二 + 模块三 |
+| 管理员（PM / 运营 / 开发） | 超级入口项目的内部人员，拥有 admin 后台访问权 | 模块一 + 模块二 + 模块三 + 模块四 |
 
 ## 5. 总体方案
 
@@ -74,7 +74,7 @@
 ```
 /login          → 登录页（粘贴 sessionId 验证，未登录访问其他页面重定向至此）
 /               → 重定向到 /migration
-/migration      → 资产一键迁移（模块一）
+/migration      → 资产同步：三张同步卡片 + 资产查询与删除（模块一，v1.5 扩展）
 /whitelist      → 白名单管理（模块二）
 /skill-mapping  → Skill 管理（模块三）
 /user-query     → 用户查询（模块四，v1.4 补录规格）
@@ -89,8 +89,10 @@
 | 接口 | 方法 | 用途 |
 | --- | --- | --- |
 | `/assets/import-knowledge` | POST | 模块一：知识库资产同步 |
+| `/assets/clear-knowledge` | POST | 模块一：清空知识库导入的资产（v1.5 补录，接口已存在） |
 | `/assets/import-table` | POST | 模块一：商品属性同步 |
-| `/assets` | GET | 模块一（P1 可选）：同步后展示资产总数 |
+| `/assets` | GET | 模块一：分页查询资产（DatasetId/Keywords 筛选，v1.5）；另以 PageSize=1 取 total 展示总数 |
+| `/assets/:id` | DELETE | 模块一（v1.5）：删除单条资产（物理删除，返回被删快照） |
 | `/whitelist` | GET | 模块二：白名单分页列表 |
 | `/whitelist` | POST | 模块二：新增 |
 | `/whitelist` | PATCH | 模块二：修改备注 |
@@ -113,10 +115,11 @@
 
 ## 6. 模块一：资产同步
 
-资产同步页提供**两个独立操作**（后端两个接口，v1.2 拆分）：
+资产同步页提供**两个同步操作与一个清空操作**（后端接口，v1.2 拆分；清空已实现、随 v1.5 一并补录），另有**资产查询与删除**工具卡片（v1.5 新增，见 6.7）：
 
 - **知识库资产同步**（`POST /assets/import-knowledge`）：将知识库 `product-*` 数据集（鞋/帽/上装等全部品类，不含 model）中的资产图片数据同步（按 `doc_id` upsert）到 UAT `assets` 表；
 - **商品属性同步**（`POST /assets/import-table`）：从 HiAgent 数据库表全量拉取行数据，按 `material ↔ assets.sku` 匹配（大小写/连接符 `_``-` 自动归一）回填**性别线 gender**（如 Mens）与**款名 des**（style_name 列）。
+- **清空现有数据**（`POST /assets/clear-knowledge`）：物理删除库中全部来自知识库 product-* 数据集的资产，先清空再同步可全量重置（人工修改的年份/季节/可见性与属性回填值会一并清除）；幂等，独立确认弹窗，与同步互斥。
 
 **同步语义（来自后端实现，产品需知悉）：**
 
@@ -139,6 +142,7 @@
 | 知识库同步结果 | 涉及数据集列表（datasets）、写入条数（imported）、解析失败条数（parseFailed，警示色） | P0 |
 | 属性同步结果 | 拉取行数（totalPulled）、回填资产行数（updatedAssets）、未匹配 material（unmatchedMaterials，警示色 + 前 10 条样例）、多命中计数（multiMatched） | P0 |
 | 失败提示 | 请求失败时展示错误信息 + 重试入口，按钮恢复可点击 | P0 |
+| 清空现有数据 | 知识库同步卡片内的红色「清空现有数据」按钮（与同步互斥）：独立确认弹窗 → 物理删除 product-* 资产 → 结果展示删除条数与涉及数据集（v1.5 补录，已实现） | P0 |
 | 资产总数（可选） | 页面标题区常驻「当前资产库共 N 条可见资产」，初始加载与任一同步成功后调 `GET /assets`（PageSize=1）刷新 | P1 |
 
 ### 6.4 接口契约
@@ -158,6 +162,17 @@
 ```
 
 - 失败：HTTP 500，errorCode `ASSETS_IMPORT_FAILED`（单数据集事务失败会整体抛错回滚该数据集）。
+
+**POST /assets/clear-knowledge**（清空知识库导入的资产，v1.5 补录）
+
+- 请求：无参数；data 结构（ClearAssetsResultVo）：
+
+```ts
+{
+  datasets: string[];   // 清空涉及的数据集别名（product-* 前缀）
+  deleted: number;      // 实际物理删除的资产条数
+}
+```
 
 **POST /assets/import-table**（商品属性同步）
 
@@ -221,6 +236,21 @@ Feature: 商品属性同步
   Scenario: 多命中（Edge Case）
     When 同步返回 multiMatched > 0
     Then 以说明文字提示「N 条资产命中多个 material，已取第一个命中的值」
+
+Feature: 清空现有数据（v1.5 补录）
+
+  Scenario: 清空成功（Happy Path）
+    When 管理员在「知识库资产同步」卡片点击「清空现有数据」并确认
+    Then 展示删除条数与涉及数据集，页头资产总数刷新
+    And 提示「库内 product-* 资产已全部删除，请重新同步重建数据」
+
+  Scenario: 清空与同步互斥（Edge Case）
+    Given 清空请求仍在进行中
+    Then 「开始同步」按钮禁用；反之同步进行中时清空按钮亦禁用
+
+  Scenario: 取消清空（Edge Case）
+    When 管理员在确认弹窗中点击「取消」
+    Then 不发起请求，数据保持不变
 ```
 
 ### 6.6 UI/UX 要点
@@ -229,6 +259,90 @@ Feature: 商品属性同步
 - 结果统计用三格统计卡，警示数字（parseFailed / unmatchedMaterials > 0）用 amber 警示色；
 - 请求超时设置：两个同步接口的 axios timeout 单独调大至 300s（默认 15s 不够）；
 - 确认弹窗文案需说明幂等性与覆盖策略差异（知识库同步保护人工值；属性同步匹配即覆盖），降低管理员顾虑。
+
+### 6.7 资产查询与删除（v1.5 新增）
+
+同步后如发现不合规商品（如错图、违规款），需要将其从资产库删除，并能在删除后查询确认「确实已不在库中」。/migration 页新增第三张工具卡片，复用既有 `GET /assets` 与 `DELETE /assets/:id` 接口（零后端改动）。
+
+**产品约束（来自后端契约）：**
+
+- 删除为**物理删除且不可恢复**；被删数据可经「清空 + 重新同步」从知识库重建（人工修改的年份/季节/可见性与属性回填值会丢失）；
+- `GET /assets` **仅返回 active=1 的可见资产**——主站资产管理页被「隐藏」的商品同样不会出现在查询结果中，「查询不到」≠「已删除」，删除与否以删除接口结果为准（UI 文案需明示此口径）；
+- `DatasetId` 支持数据集别名（如 `product-shoes`）或 UUID；`Keywords` 对文件名与款名模糊匹配（OR、不区分大小写）；两者均可选、可组合，均留空即查询全部数据集；
+- 删除接口按 id 定位，记录不存在（含已被其他管理员删除）返回 404 `ASSETS_NOT_FOUND`。
+
+**页面元素与交互：**
+
+| 元素 | 说明 | 优先级 |
+| --- | --- | --- |
+| 筛选表单 | DatasetId 输入框（placeholder 示例 product-shoes，≤128）+ Keywords 输入框（≤128）+ 「查询」按钮；文本条件由「查询」按钮/回车**显式提交**（不逐键请求、不做防抖）；条件可留空 | P0 |
+| 结果表格 | 列：ID（可复制）、文件名、SKU（可复制）、视角、性别线、款名、年份/季节、创建时间、操作（删除）；长文本截断 + hover 全文 | P0 |
+| 空态 | 首次进入未查询时展示引导态（**不自动发请求**）；查询无结果提示「若条件无误，说明该商品已不在可见资产中（已删除或在主站被隐藏）」 | P0 |
+| 删除 | 行内「删除」→ 确认弹窗（展示 ID/文件名/SKU/款名，hint 明确物理删除不可恢复 + 隐藏≠删除口径）→ 成功后列表与页头资产总数自动刷新，toast「已删除资产 #id」 | P0 |
+| 并发 404 | 删除时记录已不存在 → toast「资产不存在（可能已被删除）」+ 列表刷新，弹窗关闭 | P0 |
+| 分页 | 页码 + 总数展示；页大小切换（20/50/100，默认 50） | P0 |
+
+**接口契约：**
+
+统一响应信封同前。**GET /assets**（列表查询，HTTP 查询串为 PascalCase）：
+
+```
+query（均可选）: DatasetId=别名|UUID（≤128）、Keywords=关键词（≤128，对 filename/des 模糊 OR）、PageNumber（默认1）、PageSize（默认50，≤1000）
+data: {
+  items: [{ id, datasetId, sku, view, year, season, active, filename, url, thumbnailUrl, size, gender, des, createdAt }]
+  total: number
+}   // 仅含 active=1；id 为字符串（int8 归一化），时间为 ISO
+```
+
+**DELETE /assets/:id**（物理删除，路径参数）：
+
+```
+成功: data = 被删记录快照（结构同列表项，供调用方确认）
+不存在: HTTP 404, errorCode=ASSETS_NOT_FOUND
+```
+
+**验收标准（BDD）：**
+
+```gherkin
+Feature: 资产查询
+
+  Scenario: 组合筛选查询（Happy Path）
+    Given 管理员已登录并进入 /migration 页面
+    When 在「资产查询与删除」卡片输入数据集 product-shoes 与关键词后点击「查询」
+    Then 表格仅展示该数据集下文件名/款名命中关键词的资产，展示总数与分页
+
+  Scenario: 删除后复查（Happy Path）
+    When 删除某商品后以相同条件重新查询
+    Then 该商品不再出现在结果中（空态提示已删除或在主站被隐藏）
+
+  Scenario: 首次进入不自动请求（Edge Case）
+    When 刚进入页面尚未点击「查询」
+    Then 展示引导空态，不发起列表请求
+
+  Scenario: 查询失败（Edge Case）
+    When 查询请求失败
+    Then 展示错误态 + 重试，重试复用当前筛选条件
+
+Feature: 资产删除
+
+  Scenario: 删除成功（Happy Path）
+    When 管理员在某行点击「删除」并在确认弹窗中确认
+    Then 该行从列表移除，页头资产总数减一，toast「已删除资产 #id」
+
+  Scenario: 并发删除冲突（Edge Case）
+    When 确认删除时该资产已被删除（404 ASSETS_NOT_FOUND）
+    Then toast「资产不存在（可能已被删除）」，弹窗关闭，列表刷新
+
+  Scenario: 删除不可逆提示（约束）
+    Then 确认弹窗展示目标资产 ID/文件名/SKU/款名，hint 明确「物理删除不可恢复；可用清空+重新同步重建（人工修改会丢失）」
+```
+
+**UI/UX 要点：**
+
+- 卡片排在两张同步卡片之后；两个筛选输入框 `maxLength=128` 与后端 DTO 对齐（前端第一道校验）；
+- ID 与 SKU 列复用 CopyableText（截断 + hover 全文 + 一键复制），便于与删除接口结果/日志比对；
+- 文案显式区分「隐藏」与「删除」两个口径（active=0 的记录不进列表），避免把主站隐藏误判为已删除；
+- 查询/分页请求带竞态守卫（仅采纳最后一次请求结果），删除按钮行级 loading。
 
 ---
 
@@ -781,7 +895,8 @@ src/
 | M4 | UAT 联调、异常场景自测、部署 | 0.5～1 人日 |
 | M5（v1.3 追加） | Skill 管理模块（列表/双筛选/批量新增分组提交/编辑/删除） | 0.5 人日 |
 | M6（v1.4 补录） | 用户查询模块——规格补录（功能已上线，依赖 Java /api/auth/lark/user） | —（补录不另计工期） |
-| 合计 |  | **约 3～5.5 人日** |
+| M7（v1.5 追加） | 资产查询与删除卡片（GET /assets 查询 + DELETE /assets/:id 删除）+ 清空现有数据文档补录 | 0.5 人日 |
+| 合计 |  | **约 3.5～6 人日** |
 
 ---
 
@@ -792,7 +907,7 @@ src/
 | Q1 | admin 后台自身的管理员鉴权：登录方案只验证「是有效飞书会话」（sessionId 过 /me），不验证「是管理员」，任何拿到有效 sessionId 的用户均可进入并改白名单 | V2 在 whitelist 表新增 `admin_console` 权限点，登录后调 `GET /whitelist/check` 校验再放行（需后端改 CHECK 约束 + 前端路由守卫）；V1 靠内部地址不扩散 |
 | Q2 | 白名单列表后端不支持按 openId 过滤，跨页搜索搜不到 | 提需求给后端在 `GET /whitelist` 增加 `openId` 模糊查询参数（约 0.5 人日）；V1 先做当前页前端过滤并在 UI 上明示 |
 | Q3 | `POST /assets/import` 为同步接口，数据量增长后有超时与不可观测风险 | V2 改造为异步任务 + 进度查询接口；V1 用 300s 超时 + 幂等重试兜底 |
-| Q4 | 是否需要迁移历史记录（谁在何时迁移、结果如何）；白名单变更同样无操作日志，目前追溯手段仅 remark 中的「操作人：姓名」约定 | 后端目前无记录表；V2 需求（操作日志表 + 页面时间线） |
+| Q4 | 是否需要迁移历史记录（谁在何时迁移、结果如何）；白名单变更同样无操作日志，目前追溯手段仅 remark 中的「操作人：姓名」约定；v1.5 新增的资产删除同样仅靠确认弹窗防误删、无操作日志 | 后端目前无记录表；V2 需求（操作日志表 + 页面时间线） |
 | Q5 | 新增白名单时 openId 只能手工粘贴，无姓名可对照 | 2026-10 更新：Java 已提供 `GET /api/auth/lark/user`（openId/用户名/邮箱查档案，admin 模块四已使用），按姓名查 openId 的能力已具备；V2 可在白名单新增弹窗集成该查询做姓名对照（注意其数据来自登录落库，未登录过的用户查不到） |
 | Q6 | admin 部署路径与环境变量（VITE_BASE、网关转发规则） | 与运维确认，建议 `/portal/admin/`；需同时打通到 `superentry-uat`（Java）与 `superentry-node-uat`（Node）两条转发 |
 | Q7 | sessionId 为等同登录态的敏感凭证，登录页粘贴方式存在被诱导提交到第三方的社会工程风险 | V1 登录页明示「仅粘贴到公司内部 admin 域名」；V2 若做 admin_console 权限点可同时收敛 |
@@ -814,7 +929,7 @@ src/
 | `USER_ID_MISSING` | 400 | check 接口缺 user-id 头 | 仅用户端使用，admin 不涉及 |
 | `ASSETS_IMPORT_FAILED` | 500 | 知识库资产同步中途失败（单数据集事务回滚） | 卡片内展示 + 允许重试（幂等） |
 | `HIAGENT_TABLE_SOURCE_INVALID` | 500 | 商品属性同步的服务端数据源配置缺失/非法 | 展示错误信息，需联系开发处理配置 |
-| `ASSETS_NOT_FOUND` | 404 | 资产更新/删除不存在 | admin V1 不涉及资产单条操作 |
+| `ASSETS_NOT_FOUND` | 404 | 资产删除时记录不存在（多为并发删除；v1.5 起删除功能已使用） | toast「资产不存在（可能已被删除）」+ 列表刷新 |
 | `ASSETS_UPDATE_EMPTY` | 400 | 资产更新内容为空 | admin V1 不涉及 |
 | （无 errorCode） | 401 | x-api-key 缺失/错误 | 提示联系开发检查配置 |
 
