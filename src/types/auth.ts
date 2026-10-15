@@ -1,6 +1,6 @@
 /**
  * 登录用户类型（GET /api/auth/lark/me 的 data 载荷，Java LarkUserItem 子集）
- * 登录有效口径（PRD §9.1）：success=true 且 unionId 与 name 均非空字符串才作数；
+ * 登录有效口径（PRD §10.1）：success=true 且 unionId 与 name 均非空字符串才作数；
  * openId 后端保证非空（缺失时服务端 401），仍防御性标为可选
  */
 export interface LarkMeUser {

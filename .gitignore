@@ -5,6 +5,4 @@ dist
 .env.prd
 .env.uat
 
-docs
-
 vite.config.ts

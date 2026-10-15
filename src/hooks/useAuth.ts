@@ -34,7 +34,7 @@ export function useAuth(): {
   const login = useCallback(async (sessionId: string) => {
     const me = await getMe(sessionId)
     const validated = validateLoginUser(me)
-    // PRD §9.1：unionId 与 name 任一缺失登录不作数（HTTP 401 场景由请求层抛 ApiError）
+    // PRD §10.1：unionId 与 name 任一缺失登录不作数（HTTP 401 场景由请求层抛 ApiError）
     if (!validated) {
       throw new ApiError('会话信息不完整（缺少 unionId/name），请重新获取 sessionId', 'java')
     }

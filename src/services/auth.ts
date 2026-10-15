@@ -13,7 +13,7 @@ export async function getMe(sessionId: string): Promise<LarkMeUser> {
 }
 
 /**
- * 登录有效口径（PRD §9.1）：success=true 由请求层保证，此处校验
+ * 登录有效口径（PRD §10.1）：success=true 由请求层保证，此处校验
  * unionId 与 name 均为非空字符串——任一缺失登录不作数（保证操作可追溯）
  * 不满足返回 null，由调用方（useAuth.login）转为业务错误
  */

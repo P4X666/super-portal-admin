@@ -15,7 +15,7 @@ const NAV_ITEMS = [
 
 /**
  * 全局布局：顶栏（品牌 + 模块 Tab + 操作人 + 退出）+ 内容区单栏
- * 操作人身份来自登录验证（PRD §9.1 追溯要求），hover 展示 unionId/openId
+ * 操作人身份来自登录验证（PRD §10.1 追溯要求），hover 展示 unionId/openId
  */
 export function AppLayout() {
   const { user, logout } = useAuth()

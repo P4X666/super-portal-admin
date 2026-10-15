@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 
 /**
- * 登录页（PRD §9.1）：粘贴 sessionId + /me 验证（unionId + name 齐全才作数）
+ * 登录页（PRD §10.1）：粘贴 sessionId + /me 验证（unionId + name 齐全才作数）
  * - sessionId 获取引导：super-portal 已登录浏览器 → F12 控制台读取
  * - 会话中途失效由请求层整页跳转至此（?expired=1），据此展示失效提示
  */
