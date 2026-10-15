@@ -33,7 +33,7 @@ export const API_PATH_ASSETS_IMPORT_KNOWLEDGE = '/assets/import-knowledge'
 export const API_PATH_ASSETS_CLEAR_KNOWLEDGE = '/assets/clear-knowledge'
 /** Node：商品属性同步（HiAgent 数据库表 → assets 按 sku 回填 gender/des，同放宽超时） */
 export const API_PATH_ASSETS_IMPORT_TABLE = '/assets/import-table'
-/** Node：资产列表（V1 仅取 total 展示「当前可见资产数」） */
+/** Node：资产列表查询（DatasetId/Keywords 分页筛选 + 总数展示；仅返回 active=1 可见资产） */
 export const API_PATH_ASSETS = '/assets'
 /** Node：skill 映射 CRUD（GET/POST 同路径，PATCH/DELETE 为路径参数） */
 export const API_PATH_SKILL_MAPPING = '/skill-mapping'

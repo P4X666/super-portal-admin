@@ -4,6 +4,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { StatCard } from '@/components/common/StatCard'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AssetQueryCard } from '@/pages/migration/components/AssetQueryCard'
 import { useAssetsTotal, useKnowledgeClear, useKnowledgeImport, useTableImport } from '@/hooks/useMigration'
 import type { MigrationPhase } from '@/hooks/useMigration'
 
@@ -12,6 +13,7 @@ import type { MigrationPhase } from '@/hooks/useMigration'
  * - 知识库资产同步（POST /assets/import-knowledge）：product-* 数据集 → assets 按文档 docId 幂等 upsert
  * - 清空现有数据（POST /assets/clear-knowledge）：物理删除 product-* 数据集对应资产，配合同步全量重置
  * - 商品属性同步（POST /assets/import-table）：HiAgent 数据库表按 SKU 匹配回填性别线/款名，匹配即覆盖
+ * - 资产查询与删除（GET /assets + DELETE /assets/:id）：按数据集/关键词定位并删除不合规商品，删除后可复查
  * 各卡片独立确认 → 调用（300s 超时）→ 结果展示；接口幂等，失败可直接重试
  */
 export function MigrationPage() {
@@ -28,11 +30,13 @@ export function MigrationPage() {
               ；当前资产库共 <span className="text-text-primary">{total}</span> 条可见资产
             </>
           )}
+          ；不合规商品可在下方「资产查询与删除」中定位并移除
         </p>
       </div>
 
       <KnowledgeSyncCard onSynced={refresh} />
       <TableSyncCard onSynced={refresh} />
+      <AssetQueryCard onAssetsChanged={refresh} />
     </div>
   )
 }
