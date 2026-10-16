@@ -2,13 +2,13 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 文档版本 | v1.5 |
+| 文档版本 | v1.6 |
 | 发布日期 | 2026-10-16 |
 | 文档状态 | 待评审 |
 | 需求方 | 超级入口项目组 |
 | 关联项目 | super-portal（用户端前端）、UA-HiAgent-Plugin（Node API 服务）、UA-HiAgent-Plugin（Java API 服务，登录验证） |
 
-> 变更记录：v1.5 **模块一扩展「资产查询与删除」**（/migration 页新增第三张卡片：`GET /assets` 按 DatasetId（别名/UUID）+ Keywords 分页查询、`DELETE /assets/:id` 单条物理删除，用于下架不合规商品并在删除后复查；同时补录已实现未归档的「清空现有数据」`POST /assets/clear-knowledge`；无新增路由，无章节顺延）。v1.4 **补录模块四 用户查询**（`/user-query`，功能已上线、规格后补；依赖 Java 新增的 `GET /api/auth/lark/user` 用户档案查询；原 §9～§12 顺延为 §10～§13）。v1.3 新增**模块三 Skill 管理**（`/skill-mapping`，HiAgent skill 中文名映射表的查询/批量新增/编辑/删除；后端 `GET/POST/PATCH/DELETE /skill-mapping` 均已存在，零改动；原 §8～§11 顺延为 §9～§12）。v1.2 模块一拆分为两个同步操作——后端 import 接口更新为 `POST /assets/import-knowledge`（知识库资产同步，原 `/assets/import`）与新增 `POST /assets/import-table`（商品属性同步，HiAgent 数据库表按 SKU 回填 gender/des）。v1.1 确定登录方案（sessionId + `/me` 验证 unionId+name）。
+> 变更记录：v1.6 **微调**：§6.7 资产查询的 DatasetId 由文本输入框收敛为**固定下拉框**（「全部数据集」+ product-shoes/bag/hat/pants/outerwear/top 六个别名，默认「全部数据集」）；后端契约不变（接口仍支持别名/UUID），仅 UI 收敛。v1.5 **模块一扩展「资产查询与删除」**（/migration 页新增第三张卡片：`GET /assets` 按 DatasetId（别名/UUID）+ Keywords 分页查询、`DELETE /assets/:id` 单条物理删除，用于下架不合规商品并在删除后复查；同时补录已实现未归档的「清空现有数据」`POST /assets/clear-knowledge`；无新增路由，无章节顺延）。v1.4 **补录模块四 用户查询**（`/user-query`，功能已上线、规格后补；依赖 Java 新增的 `GET /api/auth/lark/user` 用户档案查询；原 §9～§12 顺延为 §10～§13）。v1.3 新增**模块三 Skill 管理**（`/skill-mapping`，HiAgent skill 中文名映射表的查询/批量新增/编辑/删除；后端 `GET/POST/PATCH/DELETE /skill-mapping` 均已存在，零改动；原 §8～§11 顺延为 §9～§12）。v1.2 模块一拆分为两个同步操作——后端 import 接口更新为 `POST /assets/import-knowledge`（知识库资产同步，原 `/assets/import`）与新增 `POST /assets/import-table`（商品属性同步，HiAgent 数据库表按 SKU 回填 gender/des）。v1.1 确定登录方案（sessionId + `/me` 验证 unionId+name）。
 
 ---
 
