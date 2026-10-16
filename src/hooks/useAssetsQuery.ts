@@ -6,7 +6,7 @@ import type { AssetItem } from '@/types/assets'
 /**
  * 资产查询与删除模块 hooks（资产同步页，Node GET /assets + DELETE /assets/:id）
  * - useAssetsQuery：DatasetId/Keywords 服务端筛选 + 分页 + 竞态守卫（机制对齐 useSkillMappingList）。
- *   筛选为文本输入，逐键触发会形成请求风暴，故由「查询」按钮显式提交（setQuery），首次查询前不发请求
+ *   关键词为文本输入（逐键触发会形成请求风暴），故统一由「查询」按钮显式提交（setQuery），首次查询前不发请求
  * - useAssetRemoval：单条物理删除，行级 loading；404 视为并发删除冲突交由回调处理，其余异常向上抛
  */
 export interface AssetQueryFilters {

@@ -22,16 +22,28 @@ import { AssetQueryTable } from './AssetQueryTable'
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
+/** 数据集下拉固定选项（知识库 HIAGENT_DATASETS 全量别名） */
+const DATASET_OPTIONS = [
+  'product-shoes',
+  'product-bag',
+  'product-hat',
+  'product-pants',
+  'product-outerwear',
+  'product-top',
+]
+/** 「全部数据集」哨兵值：接口层不传 DatasetId 即查全部 */
+const ALL_DATASETS = 'all'
+
 /**
  * 资产查询与删除卡片（资产同步页模块三）：
- * - 查询：GET /assets 按 DatasetId（别名/UUID）+ Keywords（文件名/款名模糊）分页筛选，
- *   文本条件由「查询」按钮显式提交；首次进入不自动请求
+ * - 查询：GET /assets 按 DatasetId（固定下拉：全部或 product-* 别名）+ Keywords（文件名/款名模糊）分页筛选，
+ *   条件由「查询」按钮显式提交；首次进入不自动请求
  * - 删除：DELETE /assets/:id 物理删除不合规商品，成功后刷新列表与资产总数；
  *   重新查询无该商品即确认删除（注意列表仅含 active=1 可见资产，主站隐藏≠删除）
  */
 export function AssetQueryCard({ onAssetsChanged }: { onAssetsChanged: () => void }) {
   const list = useAssetsQuery()
-  const [datasetId, setDatasetId] = useState('')
+  const [datasetFilter, setDatasetFilter] = useState(ALL_DATASETS)
   const [keywords, setKeywords] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<AssetItem | null>(null)
 
@@ -49,7 +61,7 @@ export function AssetQueryCard({ onAssetsChanged }: { onAssetsChanged: () => voi
   const handleQuery = (e: FormEvent) => {
     e.preventDefault()
     list.setQuery({
-      datasetId: datasetId.trim() || undefined,
+      datasetId: datasetFilter === ALL_DATASETS ? undefined : datasetFilter,
       keywords: keywords.trim() || undefined,
     })
   }
@@ -80,7 +92,7 @@ export function AssetQueryCard({ onAssetsChanged }: { onAssetsChanged: () => voi
         <ul className="flex list-disc flex-col gap-1 pl-5">
           <li>用途：同步后如发现不合规商品，在此按数据集 / 关键词定位并删除对应资产。</li>
           <li>
-            查询：数据集支持别名（如 product-shoes）或 UUID；关键词对文件名与款名模糊匹配（不区分大小写）；两项均可留空。
+            查询：数据集从下拉框选择（全部数据集或 6 个 product-* 别名）；关键词对文件名与款名模糊匹配（不区分大小写）。
           </li>
           <li>删除：物理删除且不可恢复，删除成功后自动刷新列表与资产总数。</li>
           <li>
@@ -90,14 +102,24 @@ export function AssetQueryCard({ onAssetsChanged }: { onAssetsChanged: () => voi
       </div>
 
       <form onSubmit={handleQuery} className="flex flex-wrap items-center gap-3">
-        <Input
-          value={datasetId}
-          onChange={(e) => setDatasetId(e.target.value)}
-          placeholder="数据集别名 / UUID，如 product-shoes"
-          className="w-72"
-          aria-label="数据集筛选"
-          maxLength={128}
-        />
+        <Select
+          value={datasetFilter}
+          onValueChange={(next) => {
+            if (next !== null) setDatasetFilter(next)
+          }}
+        >
+          <SelectTrigger className="w-56" aria-label="数据集筛选">
+            <SelectValue>{datasetFilter === ALL_DATASETS ? '全部数据集' : datasetFilter}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_DATASETS}>全部数据集</SelectItem>
+            {DATASET_OPTIONS.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />
           <Input
@@ -123,7 +145,7 @@ export function AssetQueryCard({ onAssetsChanged }: { onAssetsChanged: () => voi
         {!list.started ? (
           <EmptyState
             title="输入条件后点击「查询」"
-            description="两项条件均可留空（查询全部数据集），也可只填其一"
+            description="数据集默认查全部，关键词可留空，也可只按其一筛选"
           />
         ) : list.loading ? (
           <div className="flex flex-col gap-3 p-4">
